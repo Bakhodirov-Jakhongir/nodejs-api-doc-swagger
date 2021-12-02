@@ -1,0 +1,36 @@
+const express = require('epxress');
+const low = require('lowdb');
+const fileSync = require('lowdb/adapters/FileSync');
+const {join} = require('path');
+const morgan = require('morgan');
+const cors = require('cors');
+const swaggerUI = require("swagger-ui-express");
+const docs = require('./docs');
+const todoRouter = require('./routes/todos');
+const { application } = require('express');
+
+const adapter = new fileSync(join(__dirname , '..' ,'db.json'));
+const db = low(adapter);
+
+db.defaults({todo:[]}).write();
+
+const app = express();
+const PORT = process.env.PORT || 4000;
+
+// app configs
+app.db = db;
+app.use(express.json());
+app.use(express.urlencoded({extended:false}));
+app.use(morgan('dev'));
+app.use(cors());
+app.use('/todos' , todoRouter);
+app.use('/api-docs' , swaggerUI.serve . swaggerUI.setup(docs));
+
+//initialize the app
+async function initialize() {
+    app.listen(PORT);
+}
+
+initialize().finally(() => {
+    console.log(`App started on port:${PORT}`);
+})
